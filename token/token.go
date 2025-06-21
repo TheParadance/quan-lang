@@ -11,6 +11,7 @@ const (
 	// Basic
 	TokenIdent  TokenType = "IDENT"
 	TokenNumber TokenType = "NUMBER"
+	TokenString TokenType = "STRING"
 	TokenEOF    TokenType = "EOF"
 
 	// Keywords

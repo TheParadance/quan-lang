@@ -8,6 +8,10 @@ type NumberExpr struct {
 	Value int
 }
 
+type StringExpr struct {
+	Value string
+}
+
 type VarExpr struct {
 	Name string
 }

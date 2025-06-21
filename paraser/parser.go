@@ -174,6 +174,9 @@ func (p *Parser) parsePrimary() expression.Expr {
 		p.advance()
 		v, _ := strconv.Atoi(tok.Literal)
 		return expression.NumberExpr{Value: v}
+	case token.TokenString:
+		p.advance()
+		return expression.StringExpr{Value: tok.Literal}
 	case token.TokenIdent:
 		p.advance()
 		// function call or variable?

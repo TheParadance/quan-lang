@@ -6,26 +6,13 @@ async function main() {
         },
         body: JSON.stringify({
             program: `
-                fn isGraterthen(x, y){
-                   if (x > y){
-                       return true;
-                   } else {
-                       return false;
-                   }
+                fn print(x){
+                    return "hello " + x + " i love you"
                 }
-
-                fn main(x, y){
-                    if(isGraterthen(x, y)){
-                        return 1;
-                    } else {
-                        return 2;
-                    }
-                }
-                flag = main(x, y)
+                flag = print(x)
             `,
             vars: {
-                x: 5,
-                y: 9
+                x: " this is a test",
             },
         })
     })

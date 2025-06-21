@@ -14,6 +14,8 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 	switch e := expr.(type) {
 	case expression.NumberExpr:
 		return e.Value, false
+	case expression.StringExpr:
+		return e.Value, false
 	case expression.BooleanExpr:
 		return e.Value, false
 	case expression.VarExpr:
@@ -59,7 +61,22 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 		}
 
 		switch e.Operator.Type {
-		case token.TokenPlus, token.TokenMinus, token.TokenStar, token.TokenSlash, token.TokenCaret:
+		case token.TokenPlus:
+			// String concatenation
+			if ls, ok := leftVal.(string); ok {
+				if rs, ok := rightVal.(string); ok {
+					return ls + rs, false
+				}
+			}
+
+			// Fallback to numeric addition
+			lf, lok := toFloat(leftVal)
+			rf, rok := toFloat(rightVal)
+			if !lok || !rok {
+				panic("Plus operator requires both numeric or both string operands")
+			}
+			return lf + rf, false
+		case token.TokenMinus, token.TokenStar, token.TokenSlash, token.TokenCaret:
 			// Arithmetic operators
 			lf, lok := toFloat(leftVal)
 			rf, rok := toFloat(rightVal)
@@ -68,8 +85,6 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 			}
 
 			switch e.Operator.Type {
-			case token.TokenPlus:
-				return lf + rf, false
 			case token.TokenMinus:
 				return lf - rf, false
 			case token.TokenStar:

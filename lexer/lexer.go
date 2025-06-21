@@ -140,6 +140,20 @@ func Lex(input string) []token.Token {
 		case ';':
 			tokens = append(tokens, token.Token{Type: token.TokenSemicolon, Literal: ";"})
 			i++
+		case '"':
+			i++ // Skip the opening quote
+			start := i
+			for i < len(input) && input[i] != '"' {
+				if input[i] == '\\' && i+1 < len(input) {
+					i++ // Skip the escape character
+				}
+				i++
+			}
+			if i >= len(input) || input[i] != '"' {
+				panic("Unterminated string literal")
+			}
+			tokens = append(tokens, token.Token{Type: token.TokenString, Literal: input[start:i]})
+			i++ // Skip the closing quote
 		default:
 			panic(fmt.Sprintf("Unknown character: %c", ch))
 		}
