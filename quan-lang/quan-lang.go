@@ -21,6 +21,13 @@ type ExecuationOption struct {
 	Console systemconsole.SystemConsole
 }
 
+func NewExecuationOption(console systemconsole.SystemConsole) *ExecuationOption {
+	return &ExecuationOption{
+		Mode:    RELEASE,
+		Console: console,
+	}
+}
+
 type ExecuationResult struct {
 	Env             *environment.Env
 	ConsoleMessages string

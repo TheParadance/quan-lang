@@ -154,6 +154,61 @@ func Lex(input string) []token.Token {
 			}
 			tokens = append(tokens, token.Token{Type: token.TokenString, Literal: input[start:i]})
 			i++ // Skip the closing quote
+		case '\'':
+			if i+2 < len(input) && input[i+1] == '\'' && input[i+2] == '\'' {
+				// Start triple quote string
+				i += 3
+				var parts []token.Token
+				var buf []rune
+
+				for i < len(input) {
+					if i+2 < len(input) && input[i] == '\'' && input[i+1] == '\'' && input[i+2] == '\'' {
+						// end of triple quote string
+						break
+					}
+
+					ch := rune(input[i])
+					if ch == '$' && i+1 < len(input) && input[i+1] == '{' {
+						// flush buffer as string token
+						if len(buf) > 0 {
+							parts = append(parts, token.Token{Type: token.TokenString, Literal: string(buf)})
+							buf = nil
+						}
+						i += 2 // skip ${
+						exprStart := i
+						depth := 1
+						for i < len(input) && depth > 0 {
+							if input[i] == '{' {
+								depth++
+							} else if input[i] == '}' {
+								depth--
+							}
+							i++
+						}
+						if depth != 0 {
+							panic("Unclosed ${ in multiline string")
+						}
+						exprLiteral := input[exprStart : i-1]
+						parts = append(parts, token.Token{Type: token.TokenTemplateString, Literal: exprLiteral})
+					} else {
+						buf = append(buf, ch)
+						i++
+					}
+				}
+
+				if len(buf) > 0 {
+					parts = append(parts, token.Token{Type: token.TokenString, Literal: string(buf)})
+				}
+
+				i += 3 // skip closing '''
+
+				tokens = append(tokens, token.Token{
+					Type:  token.TokenTemplateString,
+					Parts: parts,
+				})
+				continue
+			}
+
 		default:
 			panic(fmt.Sprintf("Unknown character: %c", ch))
 		}

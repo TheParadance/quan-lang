@@ -6,10 +6,11 @@ async function main() {
         },
         body: JSON.stringify({
             program: `
-                print(true)
+                print('''hello world \${x}''')
+                print('''hello world \${x}''')
             `,
             vars: {
-                x: " this is a test",
+                x: 10
             },
         })
     })

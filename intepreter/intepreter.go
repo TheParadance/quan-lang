@@ -3,6 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	environment "theparadance.com/quan-lang/env"
 	"theparadance.com/quan-lang/expression"
@@ -16,6 +17,13 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 		return e.Value, false
 	case expression.StringExpr:
 		return e.Value, false
+	case expression.TemplateStringExpr:
+		var builder strings.Builder
+		for _, part := range e.Value {
+			val, _ := Eval(part, env)
+			builder.WriteString(fmt.Sprint(val))
+		}
+		return builder.String(), false
 	case expression.BooleanExpr:
 		return e.Value, false
 	case expression.VarExpr:
@@ -151,7 +159,6 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 		default:
 			panic("Unknown operator: " + e.Operator.Literal)
 		}
-
 	case expression.IfExpr:
 		cond, _ := Eval(e.Condition, env)
 

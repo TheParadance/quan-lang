@@ -12,6 +12,10 @@ type StringExpr struct {
 	Value string
 }
 
+type TemplateStringExpr struct {
+	Value []Expr // mix of StringLiteral and any other expression
+}
+
 type VarExpr struct {
 	Name string
 }

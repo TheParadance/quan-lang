@@ -5,14 +5,16 @@ type TokenType string
 type Token struct {
 	Type    TokenType
 	Literal string
+	Parts   []Token // For template strings
 }
 
 const (
 	// Basic
-	TokenIdent  TokenType = "IDENT"
-	TokenNumber TokenType = "NUMBER"
-	TokenString TokenType = "STRING"
-	TokenEOF    TokenType = "EOF"
+	TokenIdent          TokenType = "IDENT"
+	TokenNumber         TokenType = "NUMBER"
+	TokenString         TokenType = "STRING"
+	TokenTemplateString           = "TEMPLATE_STRING"
+	TokenEOF            TokenType = "EOF"
 
 	// Keywords
 	TokenIf     TokenType = "IF"

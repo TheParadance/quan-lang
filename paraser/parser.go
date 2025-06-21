@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"theparadance.com/quan-lang/expression"
+	lexer "theparadance.com/quan-lang/lexer"
 	"theparadance.com/quan-lang/token"
 )
 
@@ -29,6 +30,13 @@ var precedences = map[token.TokenType]int{
 type Parser struct {
 	Tokens []token.Token
 	pos    int
+}
+
+func NewParser(tokens []token.Token) *Parser {
+	return &Parser{
+		Tokens: tokens,
+		pos:    0,
+	}
 }
 
 func (p *Parser) Parse() []expression.Expr {
@@ -167,6 +175,9 @@ func (p *Parser) parsePrecedence(minPrec int) expression.Expr {
 func (p *Parser) parsePrimary() expression.Expr {
 	tok := p.peek()
 	switch tok.Type {
+	case token.TokenTemplateString:
+		p.advance()
+		return p.parseTemplateString(tok.Parts)
 	case token.TokenTrue, token.TokenFalse:
 		p.advance()
 		return expression.BooleanExpr{Value: tok.Type == token.TokenTrue}
@@ -205,4 +216,27 @@ func (p *Parser) parsePrimary() expression.Expr {
 	default:
 		panic("Unexpected token: " + tok.Literal)
 	}
+}
+
+func (p *Parser) parseTemplateString(parts []token.Token) expression.Expr {
+	var exprParts []expression.Expr
+
+	for _, part := range parts {
+		switch part.Type {
+		case token.TokenString:
+			exprParts = append(exprParts, expression.StringExpr{Value: part.Literal})
+		case token.TokenTemplateString: // This represents the embedded ${...}
+			sub := NewParserFromString(part.Literal)
+			expr := sub.parseExpr()
+			exprParts = append(exprParts, expr)
+		default:
+			panic("Invalid token inside template string: " + part.Type)
+		}
+	}
+	return expression.TemplateStringExpr{Value: exprParts}
+}
+
+func NewParserFromString(input string) *Parser {
+	tokens := lexer.Lex(input)
+	return NewParser(tokens)
 }

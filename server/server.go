@@ -10,11 +10,6 @@ import (
 )
 
 func Init() {
-	console := systemconsole.NewVirtualSystemConsole()
-	langOptions := &lang.ExecuationOption{
-		Mode:    lang.RELEASE,
-		Console: console,
-	}
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
@@ -39,9 +34,7 @@ func Init() {
 			}
 		},
 	})
-
 	app.Use(recover.New())
-
 	app.Post("/execute", func(c *fiber.Ctx) error {
 		var request struct {
 			Program string                 `json:"program"`
@@ -54,15 +47,22 @@ func Init() {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 		}
 
-		result, err := lang.Execuate(request.Program, &env.Env{
+		console := systemconsole.NewVirtualSystemConsole()
+		langOptions := lang.NewExecuationOption(console)
+		e := &env.Env{
 			Vars: request.Vars,
 			Builtin: map[string]env.BuiltinFunc{
 				"print": func(args []interface{}) interface{} {
 					console.Print(args...)
 					return nil
 				},
+				"println": func(args []interface{}) interface{} {
+					console.Println(args...)
+					return nil
+				},
 			},
-		}, langOptions)
+		}
+		result, err := lang.Execuate(request.Program, e, langOptions)
 
 		if err != nil {
 			println("panic here")
