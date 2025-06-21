@@ -3,10 +3,10 @@ package server
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"theparadance.com/quan-lang/env"
-	errorexception "theparadance.com/quan-lang/error-exception"
 	lang "theparadance.com/quan-lang/quan-lang"
-	systemconsole "theparadance.com/quan-lang/system-console"
+	"theparadance.com/quan-lang/src/env"
+	errorexception "theparadance.com/quan-lang/src/error-exception"
+	systemconsole "theparadance.com/quan-lang/src/system-console"
 )
 
 func Init() {
@@ -17,11 +17,11 @@ func Init() {
 			println("Error:", err.Error())
 
 			switch e := err.(type) {
-			case *errorexception.RuntimeError:
+			case errorexception.QuanLangEngineError:
 				// If it's a runtime error, return a specific JSON response
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"error":   "Runtime Error",
-					"message": e.Message,
+					"error":   "QuanLang Engine error",
+					"message": e.GetMessage(),
 				})
 			case *fiber.Error:
 				// If it's a fiber error, return the status code and message
@@ -66,9 +66,7 @@ func Init() {
 
 		if err != nil {
 			println("panic here")
-			panic(&errorexception.RuntimeError{
-				Message: err.Error(),
-			})
+			panic(err)
 		}
 
 		return c.JSON(fiber.Map{

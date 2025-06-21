@@ -1,12 +1,12 @@
 package lang
 
 import (
-	environment "theparadance.com/quan-lang/env"
-	errorexception "theparadance.com/quan-lang/error-exception"
-	interpreter "theparadance.com/quan-lang/intepreter"
-	lexer "theparadance.com/quan-lang/lexer"
-	parser "theparadance.com/quan-lang/paraser"
-	systemconsole "theparadance.com/quan-lang/system-console"
+	environment "theparadance.com/quan-lang/src/env"
+	errorexception "theparadance.com/quan-lang/src/error-exception"
+	interpreter "theparadance.com/quan-lang/src/intepreter"
+	lexer "theparadance.com/quan-lang/src/lexer"
+	parser "theparadance.com/quan-lang/src/paraser"
+	systemconsole "theparadance.com/quan-lang/src/system-console"
 )
 
 var (
@@ -53,9 +53,10 @@ func Execuate(program string, env *environment.Env, option *ExecuationOption) (E
 	defer func() {
 		if r := recover(); r != nil {
 			option.Console.Println("Error:", r.(string))
-			panic(&errorexception.RuntimeError{
+			var err errorexception.QuanLangEngineError = &errorexception.RuntimeError{
 				Message: r.(string),
-			})
+			}
+			panic(err)
 		}
 	}()
 

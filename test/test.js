@@ -13,9 +13,7 @@ async function main() {
                         w: 40
                     }
                 }
-                print('''hello world \${a.x}''')
-                a.z.w = 100
-                print('''hello world \${a.z.w}''')
+                print('''hello world \${a.z.w * 2}''')
             `,
             vars: {
                 x: 10
