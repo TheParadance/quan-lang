@@ -1,0 +1,25 @@
+x = 5
+y = 2
+
+fn add(a, b){
+    return a + b
+}
+
+fn sub(a, b){
+    return a - b
+}
+println(sub(x, y))
+println('''Quan Lang also support template string like js ${x + y}''')
+
+println("Also support object")
+person = {
+    name: "mg mg",
+    age: 35
+}
+
+println(person.name)
+println(person.age)
+println(person)
+
+
+boole

@@ -1,27 +1,54 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"flag"
 
-	"theparadance.com/quan-lang/env"
 	lang "theparadance.com/quan-lang/quan-lang"
+	"theparadance.com/quan-lang/server"
+	"theparadance.com/quan-lang/src/env"
+	systemconsole "theparadance.com/quan-lang/src/system-console"
+	"theparadance.com/quan-lang/utils"
 )
 
+// server version main
+func serverMain() {
+	server.Init()
+}
+
+// binary app main
 func main() {
-	program := `
-		fn calculateInterest(principal, rate, time) {
-			return principal * rate * time / 100;
-		}
-		fn calculateInterest2(principal, rate, time) {
-			return principal * rate * time / 100;
-		}
-		interest = calculateInterest(loanAmount, 3, 1);
-	`
+	programPath := flag.String("i", ".", "The program to execute")
+	mode := flag.String("mode", lang.RELEASE_MODE, "Execution mode: DEBUG or RELEASE")
+	envs := flag.String("envs", "{}", "Environment variables in JSON format")
+	flag.Parse()
 
-	env, _ := lang.Execuate(program, &env.Env{
-		Vars: map[string]interface{}{"loanAmount": 100000},
-	})
+	var envJson map[string]interface{}
+	err := json.Unmarshal([]byte(*envs), &envJson)
+	if err != nil {
+		panic(err)
+	}
+	program, err := utils.ReadFile(*programPath)
 
-	// fmt.Println("interest =", env.Vars["interest"]) // Should print the calculated interest
-	fmt.Printf("format: %f\n", env.Vars["interest"])
+	console := systemconsole.NewVirtualSystemConsole()
+	langOptions := lang.NewExecuationOption(console, *mode)
+	e := &env.Env{
+		Vars: envJson,
+		Builtin: map[string]env.BuiltinFunc{
+			"print": func(args []interface{}) interface{} {
+				console.Print(args...)
+				return nil
+			},
+			"println": func(args []interface{}) interface{} {
+				console.Println(args...)
+				return nil
+			},
+		},
+	}
+	result, err := lang.Execuate(program, e, langOptions)
+	println(result.ConsoleMessages)
+}
+
+func wasmBuild() {
+
 }
