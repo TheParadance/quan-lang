@@ -6,8 +6,16 @@ async function main() {
         },
         body: JSON.stringify({
             program: `
-                print('''hello world \${x}''')
-                print('''hello world \${x}''')
+                a = {
+                    x: "hello",
+                    y: 20,
+                    z: {
+                        w: 40
+                    }
+                }
+                print('''hello world \${a.x}''')
+                a.z.w = 100
+                print('''hello world \${a.z.w}''')
             `,
             vars: {
                 x: 10

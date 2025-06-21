@@ -49,4 +49,6 @@ const (
 	TokenRBrace    TokenType = "RBRACE"
 	TokenComma     TokenType = "COMMA"
 	TokenSemicolon TokenType = "SEMICOLON"
+	TokenColon     TokenType = "COLON"
+	TokenDot       TokenType = "DOT"
 )

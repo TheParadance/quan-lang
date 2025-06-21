@@ -18,10 +18,16 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 	case expression.StringExpr:
 		return e.Value, false
 	case expression.TemplateStringExpr:
+		// Template string evaluation
 		var builder strings.Builder
 		for _, part := range e.Value {
-			val, _ := Eval(part, env)
-			builder.WriteString(fmt.Sprint(val))
+			switch expr := part.(type) {
+			case expression.StringExpr:
+				builder.WriteString(expr.Value)
+			default:
+				val, _ := Eval(expr, env)
+				builder.WriteString(fmt.Sprint(val))
+			}
 		}
 		return builder.String(), false
 	case expression.BooleanExpr:
@@ -34,7 +40,19 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 		return val, false
 	case expression.AssignExpr:
 		val, _ := Eval(e.Value, env)
-		env.SetVar(e.Name, val)
+		switch target := e.Target.(type) {
+		case expression.VarExpr:
+			env.SetVar(target.Name, val)
+		case expression.MemberExpr:
+			objVal, _ := Eval(target.Object, env)
+			if objMap, ok := objVal.(map[string]interface{}); ok {
+				objMap[target.Property] = val
+			} else {
+				panic("Attempt to assign to property on non-object")
+			}
+		default:
+			panic("Invalid assignment target")
+		}
 		return val, false
 	case expression.BinaryExpr:
 		leftVal, _ := Eval(e.Left, env)
@@ -236,6 +254,20 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 	case expression.ReturnExpr:
 		val, _ := Eval(e.Value, env)
 		return val, true
+	case expression.ObjectExpr:
+		obj := make(map[string]interface{})
+		for k, vExpr := range e.Pairs {
+			v, _ := Eval(vExpr, env)
+			obj[k] = v
+		}
+		return obj, false
+	// object Member access evaluation: a.x
+	case expression.MemberExpr:
+		objVal, _ := Eval(e.Object, env)
+		if objMap, ok := objVal.(map[string]interface{}); ok {
+			return objMap[e.Property], false
+		}
+		panic("Attempt to access property on non-object")
 	default:
 		panic("Unknown expression type")
 	}

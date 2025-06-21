@@ -208,7 +208,12 @@ func Lex(input string) []token.Token {
 				})
 				continue
 			}
-
+		case ':':
+			tokens = append(tokens, token.Token{Type: token.TokenColon, Literal: ":"})
+			i++
+		case '.':
+			tokens = append(tokens, token.Token{Type: token.TokenDot, Literal: "."})
+			i++
 		default:
 			panic(fmt.Sprintf("Unknown character: %c", ch))
 		}

@@ -164,30 +164,38 @@ func (p *Parser) parsePrecedence(minPrec int) expression.Expr {
 	}
 
 	// Check for assignment (lowest precedence)
-	if ident, ok := left.(expression.VarExpr); ok && p.match(token.TokenAssign) {
+	if p.match(token.TokenAssign) {
 		value := p.parseExpr()
-		return expression.AssignExpr{Name: ident.Name, Value: value}
+		switch target := left.(type) {
+		case expression.VarExpr:
+			return expression.AssignExpr{Target: target, Value: value}
+		case expression.MemberExpr:
+			return expression.AssignExpr{Target: target, Value: value}
+		default:
+			panic("Invalid assignment target")
+		}
 	}
 
 	return left
 }
 
 func (p *Parser) parsePrimary() expression.Expr {
+	var expr expression.Expr
 	tok := p.peek()
 	switch tok.Type {
 	case token.TokenTemplateString:
 		p.advance()
-		return p.parseTemplateString(tok.Parts)
+		expr = p.parseTemplateString(tok.Parts)
 	case token.TokenTrue, token.TokenFalse:
 		p.advance()
-		return expression.BooleanExpr{Value: tok.Type == token.TokenTrue}
+		expr = expression.BooleanExpr{Value: tok.Type == token.TokenTrue}
 	case token.TokenNumber:
 		p.advance()
 		v, _ := strconv.Atoi(tok.Literal)
-		return expression.NumberExpr{Value: v}
+		expr = expression.NumberExpr{Value: v}
 	case token.TokenString:
 		p.advance()
-		return expression.StringExpr{Value: tok.Literal}
+		expr = expression.StringExpr{Value: tok.Literal}
 	case token.TokenIdent:
 		p.advance()
 		// function call or variable?
@@ -200,22 +208,36 @@ func (p *Parser) parsePrimary() expression.Expr {
 				}
 			}
 			p.consume(token.TokenRParen)
-			return expression.FuncCall{Name: tok.Literal, Args: args}
+			expr = expression.FuncCall{Name: tok.Literal, Args: args}
+		} else {
+			expr = expression.VarExpr{Name: tok.Literal}
 		}
-		return expression.VarExpr{Name: tok.Literal}
 	case token.TokenLParen:
 		p.advance()
 		expr := p.parseExpr()
 		p.consume(token.TokenRParen)
 		return expr
+	case token.TokenLBrace:
+		expr = p.parseObjectLiteral()
 	case token.TokenMinus:
 		// unary minus
 		p.advance()
 		right := p.parsePrimary()
-		return expression.BinaryExpr{Left: expression.NumberExpr{Value: 0}, Operator: token.Token{Type: token.TokenMinus}, Right: right}
-	default:
-		panic("Unexpected token: " + tok.Literal)
+		expr = expression.BinaryExpr{Left: expression.NumberExpr{Value: 0}, Operator: token.Token{Type: token.TokenMinus}, Right: right}
+		// default:
+		// 	panic("Unexpected token: " + tok.Literal)
 	}
+
+	for p.peek().Type == token.TokenDot {
+		p.advance() // consume '.'
+		propTok := p.consume(token.TokenIdent)
+		expr = expression.MemberExpr{
+			Object:   expr,
+			Property: propTok.Literal,
+		}
+	}
+
+	return expr
 }
 
 func (p *Parser) parseTemplateString(parts []token.Token) expression.Expr {
@@ -234,6 +256,41 @@ func (p *Parser) parseTemplateString(parts []token.Token) expression.Expr {
 		}
 	}
 	return expression.TemplateStringExpr{Value: exprParts}
+}
+
+func (p *Parser) parseObjectLiteral() expression.Expr {
+	p.consume(token.TokenLBrace) // consume '{'
+
+	pairs := make(map[string]expression.Expr)
+
+	for p.peek().Type != token.TokenRBrace {
+		// Parse key
+		var key string
+		if p.peek().Type == token.TokenIdent {
+			key = p.peek().Literal
+			p.advance()
+		} else if p.peek().Type == token.TokenString {
+			key = p.peek().Literal
+			p.advance()
+		} else {
+			panic("Expected identifier or string as object key")
+		}
+
+		p.consume(token.TokenColon) // consume ':'
+
+		// Parse value expression
+		value := p.parseExpr()
+
+		pairs[key] = value
+
+		if !p.match(token.TokenComma) {
+			break
+		}
+	}
+
+	p.consume(token.TokenRBrace) // consume '}'
+
+	return expression.ObjectExpr{Pairs: pairs}
 }
 
 func NewParserFromString(input string) *Parser {

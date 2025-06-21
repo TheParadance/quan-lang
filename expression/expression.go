@@ -21,8 +21,8 @@ type VarExpr struct {
 }
 
 type AssignExpr struct {
-	Name  string
-	Value Expr
+	Target Expr // could be VarExpr or MemberExpr
+	Value  Expr
 }
 
 type BinaryExpr struct {
@@ -54,4 +54,13 @@ type ReturnExpr struct {
 
 type BooleanExpr struct {
 	Value bool
+}
+
+type ObjectExpr struct {
+	Pairs map[string]Expr
+}
+
+type MemberExpr struct {
+	Object   Expr   // e.g. VarExpr{Name: "a"}
+	Property string // e.g. "x"
 }
