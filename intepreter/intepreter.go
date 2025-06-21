@@ -14,6 +14,8 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 	switch e := expr.(type) {
 	case expression.NumberExpr:
 		return e.Value, false
+	case expression.BooleanExpr:
+		return e.Value, false
 	case expression.VarExpr:
 		val, ok := env.GetVar(e.Name)
 		if !ok {
@@ -137,7 +139,29 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 
 	case expression.IfExpr:
 		cond, _ := Eval(e.Condition, env)
-		if cond != 0 {
+
+		// Handle bool
+		if b, ok := cond.(bool); ok {
+			if b {
+				for _, stmt := range e.Then {
+					val, ret := Eval(stmt, env)
+					if ret {
+						return val, ret
+					}
+				}
+			} else {
+				for _, stmt := range e.Else {
+					val, ret := Eval(stmt, env)
+					if ret {
+						return val, ret
+					}
+				}
+			}
+			return nil, false
+		}
+
+		// fallback if condition is int
+		if i, ok := cond.(int); ok && i != 0 {
 			for _, stmt := range e.Then {
 				val, ret := Eval(stmt, env)
 				if ret {
@@ -152,7 +176,7 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 				}
 			}
 		}
-		return 0, false
+		return nil, false
 	case expression.FuncDef:
 		env.Funcs[e.Name] = e
 		return 0, false

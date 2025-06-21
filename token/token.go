@@ -19,6 +19,10 @@ const (
 	TokenFn     TokenType = "FN"
 	TokenReturn TokenType = "RETURN"
 
+	// Boolean literals
+	TokenTrue  = "TRUE"
+	TokenFalse = "FALSE"
+
 	// Operators and punctuation
 	TokenPlus  TokenType = "PLUS"
 	TokenMinus TokenType = "MINUS"

@@ -13,11 +13,19 @@ async function main() {
                        return false;
                    }
                 }
-                flag = isGraterthen(x,y)
+
+                fn main(x, y){
+                    if(isGraterthen(x, y)){
+                        return 1;
+                    } else {
+                        return 2;
+                    }
+                }
+                flag = main(x, y)
             `,
             vars: {
                 x: 5,
-                y: 10
+                y: 9
             },
         })
     })

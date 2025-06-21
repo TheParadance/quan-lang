@@ -44,6 +44,10 @@ func Lex(input string) []token.Token {
 				typ = token.TokenFn
 			case "return":
 				typ = token.TokenReturn
+			case "true":
+				typ = token.TokenTrue
+			case "false":
+				typ = token.TokenFalse
 			}
 			tokens = append(tokens, token.Token{Type: typ, Literal: lit})
 			continue

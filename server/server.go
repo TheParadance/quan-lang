@@ -47,9 +47,12 @@ func Init() {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 		}
 
+		option := &lang.ExecuationOption{
+			Mode: lang.RELEASE,
+		}
 		env, err := lang.Execuate(request.Program, &env.Env{
 			Vars: request.Vars,
-		})
+		}, option)
 
 		if err != nil {
 			println("panic here")

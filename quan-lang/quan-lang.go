@@ -8,7 +8,18 @@ import (
 	parser "theparadance.com/quan-lang/paraser"
 )
 
-func Execuate(program string, env *environment.Env) (*environment.Env, error) {
+var (
+	DEBUG   = "DEBUG"
+	RELEASE = "RELEASE"
+)
+
+type Mode string
+
+type ExecuationOption struct {
+	Mode string
+}
+
+func Execuate(program string, env *environment.Env, option *ExecuationOption) (*environment.Env, error) {
 	// p := `
 	// 	fn fact(n) {
 	// 		if (n <= 1) {

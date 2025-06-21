@@ -8,6 +8,24 @@ import (
 	"theparadance.com/quan-lang/token"
 )
 
+var precedences = map[token.TokenType]int{
+	token.TokenEqual: 1,
+	token.TokenNE:    1,
+	token.TokenLT:    1,
+	token.TokenLE:    1,
+	token.TokenGT:    1,
+	token.TokenGE:    1,
+
+	token.TokenPlus:  2,
+	token.TokenMinus: 2,
+
+	token.TokenStar:  3,
+	token.TokenSlash: 3,
+	token.TokenMod:   3,
+
+	token.TokenCaret: 4,
+}
+
 type Parser struct {
 	Tokens []token.Token
 	pos    int
@@ -119,24 +137,6 @@ func (p *Parser) parseIf() expression.Expr {
 	return expression.IfExpr{Condition: cond, Then: thenBlock, Else: elseBlock}
 }
 
-var precedences = map[token.TokenType]int{
-	token.TokenEqual: 1,
-	token.TokenNE:    1,
-	token.TokenLT:    1,
-	token.TokenLE:    1,
-	token.TokenGT:    1,
-	token.TokenGE:    1,
-
-	token.TokenPlus:  2,
-	token.TokenMinus: 2,
-
-	token.TokenStar:  3,
-	token.TokenSlash: 3,
-	token.TokenMod:   3,
-
-	token.TokenCaret: 4,
-}
-
 func (p *Parser) parseExpr() expression.Expr {
 	return p.parsePrecedence(0)
 }
@@ -167,6 +167,9 @@ func (p *Parser) parsePrecedence(minPrec int) expression.Expr {
 func (p *Parser) parsePrimary() expression.Expr {
 	tok := p.peek()
 	switch tok.Type {
+	case token.TokenTrue, token.TokenFalse:
+		p.advance()
+		return expression.BooleanExpr{Value: tok.Type == token.TokenTrue}
 	case token.TokenNumber:
 		p.advance()
 		v, _ := strconv.Atoi(tok.Literal)

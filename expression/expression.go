@@ -43,3 +43,7 @@ type FuncCall struct {
 type ReturnExpr struct {
 	Value Expr
 }
+
+type BooleanExpr struct {
+	Value bool
+}
