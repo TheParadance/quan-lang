@@ -6,6 +6,7 @@ import (
 	interpreter "theparadance.com/quan-lang/intepreter"
 	lexer "theparadance.com/quan-lang/lexer"
 	parser "theparadance.com/quan-lang/paraser"
+	systemconsole "theparadance.com/quan-lang/system-console"
 )
 
 var (
@@ -16,10 +17,16 @@ var (
 type Mode string
 
 type ExecuationOption struct {
-	Mode string
+	Mode    string
+	Console systemconsole.SystemConsole
 }
 
-func Execuate(program string, env *environment.Env, option *ExecuationOption) (*environment.Env, error) {
+type ExecuationResult struct {
+	Env             *environment.Env
+	ConsoleMessages string
+}
+
+func Execuate(program string, env *environment.Env, option *ExecuationOption) (ExecuationResult, error) {
 	// p := `
 	// 	fn fact(n) {
 	// 		if (n <= 1) {
@@ -38,6 +45,7 @@ func Execuate(program string, env *environment.Env, option *ExecuationOption) (*
 
 	defer func() {
 		if r := recover(); r != nil {
+			option.Console.Println("Error:", r.(string))
 			panic(&errorexception.RuntimeError{
 				Message: r.(string),
 			})
@@ -58,5 +66,9 @@ func Execuate(program string, env *environment.Env, option *ExecuationOption) (*
 		_, _ = interpreter.Eval(expr, e)
 	}
 
-	return e, nil
+	result := ExecuationResult{
+		Env:             e,
+		ConsoleMessages: option.Console.String(),
+	}
+	return result, nil
 }

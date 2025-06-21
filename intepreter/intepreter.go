@@ -196,27 +196,36 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 		env.Funcs[e.Name] = e
 		return 0, false
 	case expression.FuncCall:
-		fn, ok := env.GetFunc(e.Name)
-		if !ok {
-			panic("Undefined function: " + e.Name)
-		}
-		if len(e.Args) != len(fn.Params) {
-			panic(fmt.Sprintf("Function %s expects %d args, got %d", e.Name, len(fn.Params), len(e.Args)))
-		}
-		// Prepare local environment
-		localEnv := environment.NewEnv(env)
-		for i, param := range fn.Params {
-			argVal, _ := Eval(e.Args[i], env)
-			localEnv.SetVar(param, argVal)
+		// 1. Try user-defined function
+		if fn, ok := env.GetFunc(e.Name); ok {
+			if len(e.Args) != len(fn.Params) {
+				panic(fmt.Sprintf("Function %s expects %d args, got %d", e.Name, len(fn.Params), len(e.Args)))
+			}
+			// Prepare local environment
+			localEnv := environment.NewEnv(env)
+			for i, param := range fn.Params {
+				argVal, _ := Eval(e.Args[i], env)
+				localEnv.SetVar(param, argVal)
+			}
+
+			for _, stmt := range fn.Body {
+				val, ret := Eval(stmt, localEnv)
+				if ret {
+					return val, true
+				}
+			}
+			return 0, false
 		}
 
-		for _, stmt := range fn.Body {
-			val, ret := Eval(stmt, localEnv)
-			if ret {
-				return val, true
+		// 2. Try built-in function
+		if builtin, ok := env.GetBuiltin(e.Name); ok {
+			var args []interface{}
+			for _, argExpr := range e.Args {
+				argVal, _ := Eval(argExpr, env)
+				args = append(args, argVal)
 			}
+			return builtin(args), false
 		}
-		return 0, false
 	case expression.ReturnExpr:
 		val, _ := Eval(e.Value, env)
 		return val, true

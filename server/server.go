@@ -6,9 +6,16 @@ import (
 	"theparadance.com/quan-lang/env"
 	errorexception "theparadance.com/quan-lang/error-exception"
 	lang "theparadance.com/quan-lang/quan-lang"
+	systemconsole "theparadance.com/quan-lang/system-console"
 )
 
 func Init() {
+	console := systemconsole.NewVirtualSystemConsole()
+	langOptions := &lang.ExecuationOption{
+		Mode:    lang.RELEASE,
+		Console: console,
+	}
+
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			// Log the error (you can use a logger here)
@@ -47,12 +54,15 @@ func Init() {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 		}
 
-		option := &lang.ExecuationOption{
-			Mode: lang.RELEASE,
-		}
-		env, err := lang.Execuate(request.Program, &env.Env{
+		result, err := lang.Execuate(request.Program, &env.Env{
 			Vars: request.Vars,
-		}, option)
+			Builtin: map[string]env.BuiltinFunc{
+				"print": func(args []interface{}) interface{} {
+					console.Print(args...)
+					return nil
+				},
+			},
+		}, langOptions)
 
 		if err != nil {
 			println("panic here")
@@ -66,7 +76,8 @@ func Init() {
 			"payload": map[string]interface{}{
 				"program": request.Program,
 				"inputs":  request.Vars,
-				"outputs": env.Vars,
+				"outputs": result.Env.Vars,
+				"console": result.ConsoleMessages,
 			},
 		})
 	})

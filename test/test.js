@@ -6,10 +6,7 @@ async function main() {
         },
         body: JSON.stringify({
             program: `
-                fn print(x){
-                    return "hello " + x + " i love you"
-                }
-                flag = print(x)
+                print(true)
             `,
             vars: {
                 x: " this is a test",
