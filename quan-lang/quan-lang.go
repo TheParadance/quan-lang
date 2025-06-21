@@ -1,16 +1,39 @@
 package lang
 
 import (
-	"theparadance.com/quan-lang/array"
-	environment "theparadance.com/quan-lang/env"
-	"theparadance.com/quan-lang/expression"
-	interpreter "theparadance.com/quan-lang/intepreter"
-	lexer "theparadance.com/quan-lang/lexer"
-	parser "theparadance.com/quan-lang/paraser"
-	"theparadance.com/quan-lang/token"
+	environment "theparadance.com/quan-lang/src/env"
+	errorexception "theparadance.com/quan-lang/src/error-exception"
+	interpreter "theparadance.com/quan-lang/src/intepreter"
+	lexer "theparadance.com/quan-lang/src/lexer"
+	parser "theparadance.com/quan-lang/src/paraser"
+	systemconsole "theparadance.com/quan-lang/src/system-console"
 )
 
-func Execuate(program string, env *environment.Env) (*environment.Env, error) {
+var (
+	DEBUG_MODE   = "DEBUG"
+	RELEASE_MODE = "RELEASE"
+)
+
+type Mode string
+
+type ExecuationOption struct {
+	Mode    string
+	Console systemconsole.SystemConsole
+}
+
+func NewExecuationOption(console systemconsole.SystemConsole, mode string) *ExecuationOption {
+	return &ExecuationOption{
+		Mode:    mode,
+		Console: console,
+	}
+}
+
+type ExecuationResult struct {
+	Env             *environment.Env
+	ConsoleMessages string
+}
+
+func Execuate(program string, env *environment.Env, option *ExecuationOption) (ExecuationResult, error) {
 	// p := `
 	// 	fn fact(n) {
 	// 		if (n <= 1) {
@@ -27,38 +50,20 @@ func Execuate(program string, env *environment.Env) (*environment.Env, error) {
 	// 	z = 10 + y;
 	// `
 
-	println("Executing program:", program)
+	defer func() {
+		if r := recover(); r != nil {
+			option.Console.Println("Error:", r.(string))
+			var err errorexception.QuanLangEngineError = &errorexception.RuntimeError{
+				Message: r.(string),
+			}
+			panic(err)
+		}
+	}()
 
 	tokens := lexer.Lex(program)
-	array.NewArray(&tokens).ForEach(func(token *token.Token, index int) {
-		println("Token", index, ":", token.Type, "->", token.Literal)
-	})
 
 	p := parser.Parser{Tokens: tokens}
 	ast := p.Parse()
-	array.NewArray(&ast).ForEach(func(expr *expression.Expr, index int) {
-		println("AST Node", index, ":", expr)
-		switch e := (*expr).(type) {
-		case expression.VarExpr:
-			println("Variable:", e.Name)
-		case expression.AssignExpr:
-			println("Assignment:", e.Name, "=", e.Value)
-		case expression.NumberExpr:
-			println("Number:", e.Value)
-		case expression.BinaryExpr:
-			println("Binary Expression:", e.Left, e.Operator.Literal, e.Right)
-		case expression.FuncDef:
-			println("Function:", e.Name, "with params", e.Params)
-		case *expression.FuncCall:
-			println("Function Call:", e.Name, "with args", e.Args)
-		case expression.IfExpr:
-			println("If Expression with condition", e.Condition, "and body", e.Then, "else", e.Else)
-		case expression.ReturnExpr:
-			println("Return Expression with value", e.Value)
-		default:
-			println("Unknown AST Node Type:", e)
-		}
-	})
 
 	e := environment.NewEnv(env)
 
@@ -66,9 +71,9 @@ func Execuate(program string, env *environment.Env) (*environment.Env, error) {
 		_, _ = interpreter.Eval(expr, e)
 	}
 
-	// fmt.Println("x =", env.Vars["b"])
-	// fmt.Println("y =", env.Vars["y"]) // Should print factorial of 5 (120)
-	// fmt.Println("z =", env.Vars["z"])
-
-	return e, nil
+	result := ExecuationResult{
+		Env:             e,
+		ConsoleMessages: option.Console.String(),
+	}
+	return result, nil
 }

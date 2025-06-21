@@ -1,0 +1,84 @@
+package server
+
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	lang "theparadance.com/quan-lang/quan-lang"
+	"theparadance.com/quan-lang/src/env"
+	errorexception "theparadance.com/quan-lang/src/error-exception"
+	systemconsole "theparadance.com/quan-lang/src/system-console"
+)
+
+func Init() {
+
+	app := fiber.New(fiber.Config{
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			// Log the error (you can use a logger here)
+			println("Error:", err.Error())
+
+			switch e := err.(type) {
+			case errorexception.QuanLangEngineError:
+				// If it's a runtime error, return a specific JSON response
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"error":   "QuanLang Engine error",
+					"message": e.GetMessage(),
+				})
+			case *fiber.Error:
+				// If it's a fiber error, return the status code and message
+				return c.Status(e.Code).JSON(fiber.Map{
+					"error":   e.Message,
+					"message": e.Message,
+				})
+			default:
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
+			}
+		},
+	})
+	app.Use(recover.New())
+	app.Post("/execute", func(c *fiber.Ctx) error {
+		var request struct {
+			Program string                 `json:"program"`
+			Vars    map[string]interface{} `json:"vars"`
+		}
+
+		println("Request received", request.Program)
+
+		if err := c.BodyParser(&request); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+		}
+
+		console := systemconsole.NewVirtualSystemConsole()
+		langOptions := lang.NewExecuationOption(console, lang.RELEASE_MODE)
+		e := &env.Env{
+			Vars: request.Vars,
+			Builtin: map[string]env.BuiltinFunc{
+				"print": func(args []interface{}) interface{} {
+					console.Print(args...)
+					return nil
+				},
+				"println": func(args []interface{}) interface{} {
+					console.Println(args...)
+					return nil
+				},
+			},
+		}
+		result, err := lang.Execuate(request.Program, e, langOptions)
+
+		if err != nil {
+			println("panic here")
+			panic(err)
+		}
+
+		return c.JSON(fiber.Map{
+			"message": "Program executed successfully",
+			"payload": map[string]interface{}{
+				"program": request.Program,
+				"inputs":  request.Vars,
+				"outputs": result.Env.Vars,
+				"console": result.ConsoleMessages,
+			},
+		})
+	})
+
+	app.Listen(":3000")
+}
