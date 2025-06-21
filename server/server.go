@@ -48,7 +48,7 @@ func Init() {
 		}
 
 		console := systemconsole.NewVirtualSystemConsole()
-		langOptions := lang.NewExecuationOption(console)
+		langOptions := lang.NewExecuationOption(console, lang.RELEASE_MODE)
 		e := &env.Env{
 			Vars: request.Vars,
 			Builtin: map[string]env.BuiltinFunc{

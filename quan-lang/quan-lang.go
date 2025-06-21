@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	DEBUG   = "DEBUG"
-	RELEASE = "RELEASE"
+	DEBUG_MODE   = "DEBUG"
+	RELEASE_MODE = "RELEASE"
 )
 
 type Mode string
@@ -21,9 +21,9 @@ type ExecuationOption struct {
 	Console systemconsole.SystemConsole
 }
 
-func NewExecuationOption(console systemconsole.SystemConsole) *ExecuationOption {
+func NewExecuationOption(console systemconsole.SystemConsole, mode string) *ExecuationOption {
 	return &ExecuationOption{
-		Mode:    RELEASE,
+		Mode:    mode,
 		Console: console,
 	}
 }
@@ -61,9 +61,6 @@ func Execuate(program string, env *environment.Env, option *ExecuationOption) (E
 	}()
 
 	tokens := lexer.Lex(program)
-	// array.NewArray(&tokens).ForEach(func(item *token.Token, index int) {
-	// 	println("Token:", item.Type, "Literal:", item.Literal)
-	// })
 
 	p := parser.Parser{Tokens: tokens}
 	ast := p.Parse()
