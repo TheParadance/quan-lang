@@ -141,6 +141,14 @@ Contributions are welcome! Please open issues or submit pull requests for improv
 This project is licensed under the MIT License.
 
 
+## Builds
+WebAssembliy
+```shell
+GOOS=js GOARCH=wasm go build -o qlang.wasm main.go     
+```
+
+
+
 
 ## Maintainer and Creator
 Name: jianshangquan
