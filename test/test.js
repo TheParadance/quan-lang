@@ -1,3 +1,5 @@
+const fs = require('fs')
+
 async function main() {
     const res = await fetch('http://localhost:3000/execute', {
         method: 'POST',
@@ -5,22 +7,13 @@ async function main() {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            program: `
-                a = {
-                    x: "hello",
-                    y: 20,
-                    z: {
-                        w: 40
-                    }
-                }
-                print('''hello world \${a.z.w * 2}''')
-            `,
+            program: fs.readFileSync('./sample-program.qlang', 'utf-8'),
             vars: {
                 x: 10
             },
         })
     })
     const data = await res.json()
-    console.log(data)
+    console.log(JSON.stringify(data, null, 2))
 }
 main()

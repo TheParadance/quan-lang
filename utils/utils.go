@@ -9,3 +9,12 @@ func ReadFile(path string) (string, error) {
 	}
 	return string(data), nil
 }
+
+func ArrayItemContain[T comparable](array []T, item T) bool {
+	for _, v := range array {
+		if v == item {
+			return true
+		}
+	}
+	return false
+}

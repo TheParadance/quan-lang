@@ -6,18 +6,20 @@ import (
 
 	lang "theparadance.com/quan-lang/quan-lang"
 	"theparadance.com/quan-lang/server"
+	builtinfunc "theparadance.com/quan-lang/src/builtin-func"
+	debuglevel "theparadance.com/quan-lang/src/debug/debug-level"
 	"theparadance.com/quan-lang/src/env"
 	systemconsole "theparadance.com/quan-lang/src/system-console"
 	"theparadance.com/quan-lang/utils"
 )
 
 // server version main
-func serverMain() {
+func main() {
 	server.Init()
 }
 
 // binary app main
-func main() {
+func binMain() {
 
 	programPath := flag.String("i", ".", "The program to execute")
 	mode := string(*flag.String("mode", lang.DEBUG_MODE, "Execution mode: DEBUG or RELEASE"))
@@ -35,7 +37,8 @@ func main() {
 	}
 	program, _ := utils.ReadFile(*programPath)
 
-	if mode == lang.DEBUG_MODE {
+	debugLv := []debuglevel.DebugLevel{debuglevel.AST_TREE}
+	if mode == lang.DEBUG_MODE && utils.ArrayItemContain(debugLv, debuglevel.PROGRAM) {
 		println("Running in DEBUG mode")
 		println("========== Program ==========")
 		println(program)
@@ -43,37 +46,10 @@ func main() {
 	}
 
 	console := systemconsole.NewVirtualSystemConsole()
-	langOptions := lang.NewExecuationOption(console, mode)
+	langOptions := lang.NewExecuationOption(console, mode, &debugLv)
 	e := &env.Env{
-		Vars: map[string]interface{}{},
-		Builtin: map[string]env.BuiltinFunc{
-			"print": func(args []interface{}) interface{} {
-				console.Print(args...)
-				return nil
-			},
-			"println": func(args []interface{}) interface{} {
-				console.Println(args...)
-				return nil
-			},
-			"type": func(args []interface{}) interface{} {
-				switch args[0].(type) {
-				case int:
-					return "int"
-				case float64:
-					return "float64"
-				case string:
-					return "string"
-				case bool:
-					return "bool"
-				case map[string]interface{}:
-					return "object"
-				case []interface{}:
-					return "array"
-				default:
-					return "unknown"
-				}
-			},
-		},
+		Vars:    map[string]interface{}{},
+		Builtin: builtinfunc.BuildInFuncs(console),
 	}
 	result, _ := lang.Execuate(program, e, langOptions)
 

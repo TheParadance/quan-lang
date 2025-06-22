@@ -4,6 +4,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	lang "theparadance.com/quan-lang/quan-lang"
+	builtinfunc "theparadance.com/quan-lang/src/builtin-func"
+	debuglevel "theparadance.com/quan-lang/src/debug/debug-level"
 	"theparadance.com/quan-lang/src/env"
 	errorexception "theparadance.com/quan-lang/src/error-exception"
 	systemconsole "theparadance.com/quan-lang/src/system-console"
@@ -47,20 +49,12 @@ func Init() {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 		}
 
+		debugLv := []debuglevel.DebugLevel{debuglevel.LEXER_TOKENS, debuglevel.AST_TREE}
 		console := systemconsole.NewVirtualSystemConsole()
-		langOptions := lang.NewExecuationOption(console, lang.RELEASE_MODE)
+		langOptions := lang.NewExecuationOption(console, lang.RELEASE_MODE, &debugLv)
 		e := &env.Env{
-			Vars: request.Vars,
-			Builtin: map[string]env.BuiltinFunc{
-				"print": func(args []interface{}) interface{} {
-					console.Print(args...)
-					return nil
-				},
-				"println": func(args []interface{}) interface{} {
-					console.Println(args...)
-					return nil
-				},
-			},
+			Vars:    request.Vars,
+			Builtin: builtinfunc.BuildInFuncs(console),
 		}
 		result, err := lang.Execuate(request.Program, e, langOptions)
 
@@ -76,6 +70,8 @@ func Init() {
 				"inputs":  request.Vars,
 				"outputs": result.Env.Vars,
 				"console": result.ConsoleMessages,
+				"tokens":  result.Tokens,
+				"ast":     result.Expression,
 			},
 		})
 	})
