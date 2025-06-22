@@ -36,6 +36,8 @@ Quan-Lang is a simple interpreted programming language implemented in Go. It is 
 - **Debug Options**: Built-in debug utilities and options for tracing/interpreter output.
 - **Extensible**: Modular design for easy extension.
 - **WebAssembly**: Support WebAssembly, this engine can run from browser
+- **New APIs**: Support fetch(), toJson(), toMap()
+- **Parser**: int(), float(), string(), bool()
 
 ---
 
