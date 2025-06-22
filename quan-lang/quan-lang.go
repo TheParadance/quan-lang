@@ -81,7 +81,6 @@ func Execuate(program string, env *environment.Env, option *ExecuationOption) (E
 	ast := p.Parse()
 	if option.Mode == DEBUG_MODE {
 		println("========== AST Tree ==========")
-
 		for _, expr := range ast {
 			PrintExpression(expr, 0)
 		}
@@ -191,5 +190,16 @@ func PrintExpression(expr expression.Expr, indent int) {
 				PrintExpression(p, indent+4)
 			}
 		}
+	case expression.ArrayExpr:
+		println("[ArrayExpr]:", len(e.Elements))
+		for _, element := range e.Elements {
+			PrintExpression(element, indent+4)
+		}
+
+	case expression.IndexExpr:
+		println("[IndexExpr]:", e.Array, "Index:", e.Index)
+		PrintExpression(e.Array, indent+4)
+		PrintExpression(e.Index, indent+4)
+
 	}
 }

@@ -288,6 +288,47 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 			return objMap[e.Property], false
 		}
 		panic("Attempt to access property on non-object")
+	case expression.ArrayExpr:
+		var result []interface{}
+		for _, elem := range e.Elements {
+			val, _ := Eval(elem, env)
+			result = append(result, val)
+		}
+		return result, false
+	case expression.IndexExpr:
+		arrayVal, _ := Eval(e.Array, env)
+		indexVal, _ := Eval(e.Index, env)
+
+		arr, ok := arrayVal.([]interface{})
+		if !ok {
+			panic("Trying to index non-array value")
+		}
+
+		var indexInt int
+		switch v := indexVal.(type) {
+		case int:
+			indexInt = v
+		case float64:
+			if v == float64(int(v)) {
+				indexInt = int(v)
+			} else {
+				panic("Array index must be an integer")
+			}
+		default:
+			panic("Array index must be an integer")
+		}
+
+		if indexInt < 0 || indexInt >= len(arr) {
+			panic("Array index out of bounds")
+		}
+
+		return arr[indexInt], false
+
+		if indexInt < 0 || indexInt >= len(arr) {
+			panic("Array index out of bounds")
+		}
+
+		return arr[indexInt], false
 	default:
 		panic("Unknown expression type")
 	}

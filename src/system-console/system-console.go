@@ -2,6 +2,7 @@ package systemconsole
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -47,8 +48,15 @@ func (virtualConsole *VirtualSystemConsole) Print(args ...any) {
 		case map[string]interface{}:
 			json, _ := MapToPrettyJSON(v)
 			virtualConsole.builder.WriteString(json)
+		case []interface{}:
+			strs := []string{}
+			for _, item := range v {
+				strs = append(strs, fmt.Sprintf("%v", item))
+			}
+			virtualConsole.builder.WriteString("[" + strings.Join(strs, ", ") + "]")
 		default:
-			virtualConsole.builder.WriteString(v.(string)) // Assuming all other types can be converted to string
+			virtualConsole.builder.WriteString(fmt.Sprintf("%v", v))
+			// virtualConsole.builder.WriteString(v.(string)) // Assuming all other types can be converted to string
 		}
 	}
 }

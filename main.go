@@ -20,7 +20,7 @@ func serverMain() {
 func main() {
 
 	programPath := flag.String("i", ".", "The program to execute")
-	mode := string(*flag.String("mode", lang.RELEASE_MODE, "Execution mode: DEBUG or RELEASE"))
+	mode := string(*flag.String("mode", lang.DEBUG_MODE, "Execution mode: DEBUG or RELEASE"))
 	envs := flag.String("envs", "{}", "Environment variables in JSON format")
 	flag.Parse()
 

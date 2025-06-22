@@ -12,6 +12,7 @@ const (
 	// Basic
 	TokenIdent          TokenType = "IDENT"
 	TokenNumber         TokenType = "NUMBER"
+	TokenFloat          TokenType = "FLOAT"
 	TokenString         TokenType = "STRING"
 	TokenTemplateString           = "TEMPLATE_STRING"
 	TokenEOF            TokenType = "EOF"
@@ -38,6 +39,11 @@ const (
 
 	TokenAssign TokenType = "ASSIGN"
 
+	// array
+	TokenLBracket TokenType = "LBRACKET" // [
+	TokenRBracket TokenType = "RBRACKET" // ]
+
+	// comparator
 	TokenEqual TokenType = "EQ"
 	TokenNE    TokenType = "NE"
 	TokenLT    TokenType = "LT"
