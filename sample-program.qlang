@@ -1,36 +1,3 @@
-x = 5
-y = 2
-
-fn add(a, b){
-    c = a + b
-    return c + 5
-}
-
-fn sub(a, b){
-    return a - b
-}
-println(sub(x, y))
-println('''Quan Lang also support template string like js ${x + y}''')
-
-println("Also support object")
-person = {
-    name: "mg mg",
-    age: 35
-}
-
-println(person.name)
-println(person.age)
-println(person)
-println(type(person))
-
-val = true ? 1 : 2
-println(val)
-println(type(val))
-
-r = [1, 2, 3]
-println(r)
-println(r[0] + r[2])
-
-vvv = 0.5 + 1
-
-println(obj.age)
+json = "{\"hello\": 5}"
+parsed = toJson(json, true, 4)
+println(parsed)
