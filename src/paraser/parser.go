@@ -95,6 +95,12 @@ func (p *Parser) parseStatement() expression.Expr {
 		return p.parseIf()
 	}
 	if p.match(token.TokenReturn) {
+		// Handle `return` with or without a value
+		if p.peek().Type == token.TokenSemicolon || p.peek().Type == token.TokenEOF || p.peek().Type == token.TokenRBrace {
+			p.match(token.TokenSemicolon) // optional semicolon
+			return expression.ReturnExpr{Value: nil}
+		}
+
 		val := p.parseExpr()
 		p.match(token.TokenSemicolon) // optional semicolon
 		return expression.ReturnExpr{Value: val}
@@ -210,6 +216,9 @@ func (p *Parser) parsePrimary() expression.Expr {
 	var expr expression.Expr
 	tok := p.peek()
 	switch tok.Type {
+	case token.TokenNull:
+		p.advance()
+		expr = expression.NullExpr{}
 	case token.TokenTemplateString:
 		p.advance()
 		expr = p.parseTemplateString(tok.Parts)

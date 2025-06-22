@@ -21,6 +21,7 @@ person = {
 println(person.name)
 println(person.age)
 println(person)
+println(type(person))
 
 val = true ? 1 : 2
 println(val)
@@ -31,3 +32,5 @@ println(r)
 println(r[0] + r[2])
 
 vvv = 0.5 + 1
+
+println(obj.age)

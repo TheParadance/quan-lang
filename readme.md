@@ -18,6 +18,7 @@ Quan-Lang is a simple interpreted programming language implemented in Go. It is 
 ---
 
 ## Features
+## Features
 
 - **Lexer**: Converts source code into tokens.
 - **Parser**: Builds an abstract syntax tree (AST) from tokens.
@@ -28,7 +29,10 @@ Quan-Lang is a simple interpreted programming language implemented in Go. It is 
 - **Arithmetic**: Supports `+`, `-`, `*`, `/`, `%`, `^`, and comparison operators.
 - **Block Scoping**: Functions and conditionals have their own scope.
 - **Objects**: Object literals and property access.
+- **Arrays**: Array literals, indexing, and array utility functions.
+- **Floats**: Native support for floating-point numbers and arithmetic.
 - **Template Strings**: JS-like template strings with `${}` expressions.
+- **Debug Options**: Built-in debug utilities and options for tracing/interpreter output.
 - **Extensible**: Modular design for easy extension.
 
 ---
@@ -98,53 +102,31 @@ fmt.Printf("Interest: %f\n", env.Vars["interest"])
 
 ---
 
+## Array, Float, and Debug Example
+
+```go
+program := `
+    arr = [1, 2, 3.5, 4];
+    sum = 0.0;
+    for (i = 0; i < len(arr); i = i + 1) {
+        sum = sum + arr[i];
+    }
+    debug("Sum of array:", sum);
+`
+env, _ := lang.Execuate(program, &env.Env{
+    Debug: true, // Enable debug output
+})
+
+fmt.Printf("Sum: %f\n", env.Vars["sum"])
+```
+
+---
+
 ## Lexer Example
 
 The lexer scans the input string and produces a slice of tokens.  
 Here is a simplified excerpt from [`lexer/lexer.go`](lexer/lexer.go):
 
-```go
-func Lex(input string) []token.Token {
-    var tokens []token.Token
-    i := 0
-    for i < len(input) {
-        ch := rune(input[i])
-
-        // Skip whitespace
-        if unicode.IsSpace(ch) {
-            i++
-            continue
-        }
-
-        // Identifiers or keywords
-        if isLetter(ch) {
-            start := i
-            for i < len(input) && (isLetter(rune(input[i])) || IsDigit(rune(input[i]))) {
-                i++
-            }
-            lit := input[start:i]
-            typ := token.TokenIdent
-            switch lit {
-            case "if":
-                typ = token.TokenIf
-            case "else":
-                typ = token.TokenElse
-            case "fn":
-                typ = token.TokenFn
-            case "return":
-                typ = token.TokenReturn
-            }
-            tokens = append(tokens, token.Token{Type: typ, Literal: lit})
-            continue
-        }
-
-        // ... (handling numbers, operators, punctuation, etc.)
-
-    }
-    tokens = append(tokens, token.Token{Type: token.TokenEOF, Literal: ""})
-    return tokens
-}
-```
 
 ---
 
@@ -157,6 +139,14 @@ Contributions are welcome! Please open issues or submit pull requests for improv
 ## License
 
 This project is licensed under the MIT License.
+
+
+## Builds
+WebAssembliy
+```shell
+GOOS=js GOARCH=wasm go build -o qlang.wasm main.go     
+```
+
 
 
 
