@@ -9,11 +9,14 @@ async function main() {
         body: JSON.stringify({
             program: fs.readFileSync('./sample-program.qlang', 'utf-8'),
             vars: {
-                x: 10
+                "obj": {
+                    person: "John",
+                    age: 25
+                }
             },
         })
     })
     const data = await res.json()
-    console.log(JSON.stringify(data, null, 2))
+    console.log(data)
 }
 main()

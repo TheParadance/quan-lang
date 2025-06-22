@@ -19,7 +19,7 @@ func main() {
 }
 
 // binary app main
-func binMain() {
+func mainBin() {
 
 	programPath := flag.String("i", ".", "The program to execute")
 	mode := string(*flag.String("mode", lang.DEBUG_MODE, "Execution mode: DEBUG or RELEASE"))
@@ -48,7 +48,12 @@ func binMain() {
 	console := systemconsole.NewVirtualSystemConsole()
 	langOptions := lang.NewExecuationOption(console, mode, &debugLv)
 	e := &env.Env{
-		Vars:    map[string]interface{}{},
+		Vars: map[string]interface{}{
+			"obj": map[string]interface{}{
+				"name": "quan",
+				"age":  18,
+			},
+		},
 		Builtin: builtinfunc.BuildInFuncs(console),
 	}
 	result, _ := lang.Execuate(program, e, langOptions)
