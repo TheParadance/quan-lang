@@ -49,6 +49,8 @@ func Lex(input string) []token.Token {
 				typ = token.TokenTrue
 			case "false":
 				typ = token.TokenFalse
+			case "null":
+				typ = token.TokenNull
 			}
 			tokens = append(tokens, token.Token{Type: typ, Literal: lit})
 			continue
