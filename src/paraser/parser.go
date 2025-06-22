@@ -196,6 +196,8 @@ func (p *Parser) parsePrecedence(minPrec int) expression.Expr {
 			return expression.AssignExpr{Target: target, Value: value}
 		case expression.MemberExpr:
 			return expression.AssignExpr{Target: target, Value: value}
+		case expression.IndexExpr: // array a[0] = 4
+			return expression.AssignExpr{Target: target, Value: value}
 		default:
 			panic("Invalid assignment target")
 		}
@@ -217,12 +219,16 @@ func (p *Parser) parsePrimary() expression.Expr {
 	case token.TokenNumber:
 		p.advance()
 		v, _ := strconv.Atoi(tok.Literal)
+		expr = expression.NumberExpr{Value: float64(v)}
+	case token.TokenFloat:
+		p.advance()
+		v, _ := strconv.ParseFloat(tok.Literal, 64)
 		expr = expression.NumberExpr{Value: v}
 	case token.TokenString:
 		p.advance()
 		expr = expression.StringExpr{Value: tok.Literal}
 	case token.TokenIdent:
-		p.advance()
+		tok := p.advance()
 		// function call or variable?
 		if p.match(token.TokenLParen) {
 			var args []expression.Expr
@@ -249,16 +255,34 @@ func (p *Parser) parsePrimary() expression.Expr {
 		p.advance()
 		right := p.parsePrimary()
 		expr = expression.BinaryExpr{Left: expression.NumberExpr{Value: 0}, Operator: token.Token{Type: token.TokenMinus}, Right: right}
+	case token.TokenLBracket:
+		return p.parseArrayLiteral()
 		// default:
 		// 	panic("Unexpected token: " + tok.Literal)
 	}
 
-	for p.peek().Type == token.TokenDot {
-		p.advance() // consume '.'
-		propTok := p.consume(token.TokenIdent)
-		expr = expression.MemberExpr{
-			Object:   expr,
-			Property: propTok.Literal,
+	for {
+		switch p.peek().Type {
+		case token.TokenDot:
+			// for object property assignment
+			p.advance()
+			propTok := p.consume(token.TokenIdent)
+			expr = expression.MemberExpr{
+				Object:   expr,
+				Property: propTok.Literal,
+			}
+
+		case token.TokenLBracket:
+			// for array index assignment
+			p.advance()
+			index := p.parseExpr()
+			p.consume(token.TokenRBracket)
+			expr = expression.IndexExpr{
+				Array: expr,
+				Index: index,
+			}
+		default:
+			return expr
 		}
 	}
 
@@ -316,6 +340,19 @@ func (p *Parser) parseObjectLiteral() expression.Expr {
 	p.consume(token.TokenRBrace) // consume '}'
 
 	return expression.ObjectExpr{Pairs: pairs}
+}
+
+func (p *Parser) parseArrayLiteral() expression.Expr {
+	p.consume(token.TokenLBracket)
+	var elements []expression.Expr
+	if p.peek().Type != token.TokenRBracket {
+		elements = append(elements, p.parseExpr())
+		for p.match(token.TokenComma) {
+			elements = append(elements, p.parseExpr())
+		}
+	}
+	p.consume(token.TokenRBracket)
+	return expression.ArrayExpr{Elements: elements}
 }
 
 func NewParserFromString(input string) *Parser {

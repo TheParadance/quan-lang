@@ -5,7 +5,7 @@ import "theparadance.com/quan-lang/src/token"
 type Expr interface{}
 
 type NumberExpr struct {
-	Value int
+	Value float64
 }
 
 type StringExpr struct {
@@ -69,4 +69,13 @@ type ObjectExpr struct {
 type MemberExpr struct {
 	Object   Expr   // e.g. VarExpr{Name: "a"}
 	Property string // e.g. "x"
+}
+
+type ArrayExpr struct {
+	Elements []Expr
+}
+
+type IndexExpr struct {
+	Array Expr
+	Index Expr
 }
