@@ -26,6 +26,8 @@ const (
 	TokenTrue  = "TRUE"
 	TokenFalse = "FALSE"
 
+	TokenQuestion TokenType = "TERNARY" // For expressions like `condition ? trueValue : falseValue`
+
 	// Operators and punctuation
 	TokenPlus  TokenType = "PLUS"
 	TokenMinus TokenType = "MINUS"

@@ -211,6 +211,9 @@ func Lex(input string) []token.Token {
 				})
 				continue
 			}
+		case '?':
+			i++
+			tokens = append(tokens, token.Token{Type: token.TokenQuestion, Literal: "?"})
 		case ':':
 			tokens = append(tokens, token.Token{Type: token.TokenColon, Literal: ":"})
 			i++

@@ -217,6 +217,26 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 			}
 		}
 		return nil, false
+	case expression.TernaryExpr:
+		condVal, _ := Eval(e.Condition, env)
+		condBool := false
+
+		switch v := condVal.(type) {
+		case bool:
+			condBool = v
+		case int:
+			condBool = v != 0
+		case float64:
+			condBool = v != 0.0
+		default:
+			panic("Invalid condition type for ternary expression")
+		}
+
+		if condBool {
+			return Eval(e.TrueValue, env)
+		} else {
+			return Eval(e.FalseValue, env)
+		}
 	case expression.FuncDef:
 		env.Funcs[e.Name] = e
 		return 0, false

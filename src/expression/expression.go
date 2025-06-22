@@ -37,6 +37,12 @@ type IfExpr struct {
 	Else      []Expr
 }
 
+type TernaryExpr struct {
+	Condition  Expr
+	TrueValue  Expr
+	FalseValue Expr
+}
+
 type FuncDef struct {
 	Name   string
 	Params []string

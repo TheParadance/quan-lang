@@ -11,6 +11,8 @@ import (
 )
 
 var precedences = map[token.TokenType]int{
+	token.TokenQuestion: 0,
+
 	token.TokenEqual: 1,
 	token.TokenNE:    1,
 	token.TokenLT:    1,
@@ -157,16 +159,36 @@ func (p *Parser) parsePrecedence(minPrec int) expression.Expr {
 
 	for {
 		tok := p.peek()
+
+		// Handle ternary operator separately, since it's not left-associative
+		if tok.Type == token.TokenQuestion && minPrec <= precedences[token.TokenQuestion] {
+			p.advance() // consume '?'
+			thenExpr := p.parseExpr()
+			p.consume(token.TokenColon) // expect ':'
+			elseExpr := p.parseExpr()
+			left = expression.TernaryExpr{
+				Condition:  left,
+				TrueValue:  thenExpr,
+				FalseValue: elseExpr,
+			}
+			continue
+		}
+
 		prec, ok := precedences[tok.Type]
 		if !ok || prec < minPrec {
 			break
 		}
+
 		op := p.advance()
 		right := p.parsePrecedence(prec + 1)
-		left = expression.BinaryExpr{Left: left, Operator: op, Right: right}
+		left = expression.BinaryExpr{
+			Left:     left,
+			Operator: op,
+			Right:    right,
+		}
 	}
 
-	// Check for assignment (lowest precedence)
+	// Assignment: lowest precedence, parsed after other expressions
 	if p.match(token.TokenAssign) {
 		value := p.parseExpr()
 		switch target := left.(type) {
