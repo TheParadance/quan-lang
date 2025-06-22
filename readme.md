@@ -18,7 +18,6 @@ Quan-Lang is a simple interpreted programming language implemented in Go. It is 
 ---
 
 ## Features
-## Features
 
 - **Lexer**: Converts source code into tokens.
 - **Parser**: Builds an abstract syntax tree (AST) from tokens.
@@ -31,9 +30,12 @@ Quan-Lang is a simple interpreted programming language implemented in Go. It is 
 - **Objects**: Object literals and property access.
 - **Arrays**: Array literals, indexing, and array utility functions.
 - **Floats**: Native support for floating-point numbers and arithmetic.
+- **EmptyReturn**: Return without value from a function.
+- **Null**: Null value.
 - **Template Strings**: JS-like template strings with `${}` expressions.
 - **Debug Options**: Built-in debug utilities and options for tracing/interpreter output.
 - **Extensible**: Modular design for easy extension.
+- **WebAssembly**: Support WebAssembly, this engine can run from browser
 
 ---
 
@@ -142,6 +144,11 @@ This project is licensed under the MIT License.
 
 
 ## Builds
+Buid binary
+```shell
+go build main.go 
+```
+
 WebAssembliy
 ```shell
 GOOS=js GOARCH=wasm go build -o qlang.wasm main.go     
