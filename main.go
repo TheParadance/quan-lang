@@ -65,6 +65,10 @@ func main() {
 					return "string"
 				case bool:
 					return "bool"
+				case map[string]interface{}:
+					return "object"
+				case []interface{}:
+					return "array"
 				default:
 					return "unknown"
 				}
