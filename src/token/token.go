@@ -12,6 +12,7 @@ const (
 	// Basic
 	TokenIdent          TokenType = "IDENT"
 	TokenNumber         TokenType = "NUMBER"
+	TokenFloat          TokenType = "FLOAT"
 	TokenString         TokenType = "STRING"
 	TokenTemplateString           = "TEMPLATE_STRING"
 	TokenEOF            TokenType = "EOF"
@@ -26,6 +27,8 @@ const (
 	TokenTrue  = "TRUE"
 	TokenFalse = "FALSE"
 
+	TokenQuestion TokenType = "TERNARY" // For expressions like `condition ? trueValue : falseValue`
+
 	// Operators and punctuation
 	TokenPlus  TokenType = "PLUS"
 	TokenMinus TokenType = "MINUS"
@@ -36,6 +39,11 @@ const (
 
 	TokenAssign TokenType = "ASSIGN"
 
+	// array
+	TokenLBracket TokenType = "LBRACKET" // [
+	TokenRBracket TokenType = "RBRACKET" // ]
+
+	// comparator
 	TokenEqual TokenType = "EQ"
 	TokenNE    TokenType = "NE"
 	TokenLT    TokenType = "LT"
