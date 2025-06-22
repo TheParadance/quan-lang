@@ -13,6 +13,8 @@ import (
 
 func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 	switch e := expr.(type) {
+	case expression.NullExpr:
+		return nil, false
 	case expression.NumberExpr:
 		return e.Value, false
 	case expression.StringExpr:
@@ -272,6 +274,9 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 			return builtin(args), false
 		}
 	case expression.ReturnExpr:
+		if e.Value == nil {
+			return nil, true
+		}
 		val, _ := Eval(e.Value, env)
 		return val, true
 	case expression.ObjectExpr:
