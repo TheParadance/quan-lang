@@ -4,6 +4,8 @@ import "theparadance.com/quan-lang/src/token"
 
 type Expr interface{}
 
+type NullExpr struct{}
+
 type NumberExpr struct {
 	Value float64
 }
