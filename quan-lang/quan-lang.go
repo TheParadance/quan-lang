@@ -60,11 +60,21 @@ func Execuate(program string, env *environment.Env, option *ExecuationOption) (E
 
 	defer func() {
 		if r := recover(); r != nil {
-			option.Console.Println("[Error]: ", r.(string))
-			var err errorexception.QuanLangEngineError = &errorexception.RuntimeError{
-				Message: r.(string),
+			switch r.(type) {
+			case errorexception.QuanLangEngineError:
+				msg := r.(errorexception.QuanLangEngineError).GetMessage()
+				option.Console.Println("[Error]: ", msg)
+				var err errorexception.QuanLangEngineError = &errorexception.RuntimeError{
+					Message: msg,
+				}
+				panic(err)
+			case error:
+				msg := r.(error).Error()
+				option.Console.Println("[Error]: ", msg)
+			default:
+				option.Console.Println("[Error]: ", r.(string))
+				panic(r)
 			}
-			panic(err)
 		}
 	}()
 
