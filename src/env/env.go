@@ -4,7 +4,7 @@ import (
 	"theparadance.com/quan-lang/src/expression"
 )
 
-type BuiltinFunc func(args []any) any
+type BuiltinFunc func(args []any) (any, error)
 
 type Env struct {
 	Vars    map[string]interface{}

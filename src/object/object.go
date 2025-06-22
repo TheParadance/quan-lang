@@ -1,5 +1,7 @@
 package object
 
+type Null struct{}
+
 type Value interface{}
 type Object struct {
 	Properties map[string]Value

@@ -8,13 +8,16 @@ import (
 	environment "theparadance.com/quan-lang/src/env"
 	"theparadance.com/quan-lang/src/expression"
 	"theparadance.com/quan-lang/src/helper"
+	"theparadance.com/quan-lang/src/object"
 	"theparadance.com/quan-lang/src/token"
 )
+
+var Null = &object.Null{}
 
 func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 	switch e := expr.(type) {
 	case expression.NullExpr:
-		return nil, false
+		return Null, false
 	case expression.NumberExpr:
 		return e.Value, false
 	case expression.StringExpr:
@@ -148,6 +151,8 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 					return helper.CompareInts(l, r, e.Operator.Type), false
 				case float64:
 					return helper.CompareFloats(float64(l), r, e.Operator.Type), false
+				case (*object.Null):
+					return 0, false
 				default:
 					panic("Type mismatch in comparison")
 				}
@@ -157,21 +162,36 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 					return helper.CompareFloats(l, float64(r), e.Operator.Type), false
 				case float64:
 					return helper.CompareFloats(l, r, e.Operator.Type), false
+				case (*object.Null):
+					return 0, false
 				default:
 					panic("Type mismatch in comparison")
 				}
 			case string:
-				rs, ok := rightVal.(string)
-				if !ok {
+				switch rs := rightVal.(type) {
+				case string:
+					return helper.CompareStrings(l, rs, e.Operator.Type), false
+				case (*object.Null):
+					return 0, false
+				default:
 					panic("Type mismatch in comparison")
 				}
-				return helper.CompareStrings(l, rs, e.Operator.Type), false
 			case bool:
-				rb, ok := rightVal.(bool)
-				if !ok {
+				switch rb := rightVal.(type) {
+				case bool:
+					return helper.CompareBools(l, rb, e.Operator.Type), false
+				case (*object.Null):
+					return 0, false
+				default:
 					panic("Type mismatch in comparison")
 				}
-				return helper.CompareBools(l, rb, e.Operator.Type), false
+			case *object.Null:
+				rNull, ok := rightVal.(*object.Null)
+				if !ok {
+					// panic("Type mismatch in comparison")
+					return 0, false
+				}
+				return helper.CompareNulls(l, rNull, e.Operator.Type), false
 			default:
 				panic("Unsupported type for comparison")
 			}
@@ -271,7 +291,12 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 				argVal, _ := Eval(argExpr, env)
 				args = append(args, argVal)
 			}
-			return builtin(args), false
+			println("try calling builtin function")
+			result, err := builtin(args)
+			if err != nil {
+				panic(err)
+			}
+			return result, false
 		}
 	case expression.ReturnExpr:
 		if e.Value == nil {
