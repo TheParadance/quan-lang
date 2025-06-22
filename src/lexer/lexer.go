@@ -54,12 +54,37 @@ func Lex(input string) []token.Token {
 			continue
 		}
 
-		// Numbers (integer only)
-		if IsDigit(ch) {
+		// Handle numbers that start with a dot, e.g. `.5`
+		if ch == '.' && i+1 < len(input) && IsDigit(rune(input[i+1])) {
 			start := i
+			i++ // consume the dot
 			for i < len(input) && IsDigit(rune(input[i])) {
 				i++
 			}
+			tokens = append(tokens, token.Token{Type: token.TokenFloat, Literal: input[start:i]})
+			continue
+		}
+
+		// Numbers (integer only)
+		if IsDigit(ch) {
+			start := i
+			// Read integer part digits
+			for i < len(input) && IsDigit(rune(input[i])) {
+				i++
+			}
+			// Check if next char is '.' and followed by digit(s) — to detect float
+			if i < len(input) && input[i] == '.' {
+				if i+1 < len(input) && IsDigit(rune(input[i+1])) {
+					i++ // consume the dot
+					// consume fractional digits
+					for i < len(input) && IsDigit(rune(input[i])) {
+						i++
+					}
+					tokens = append(tokens, token.Token{Type: token.TokenFloat, Literal: input[start:i]})
+					continue
+				}
+			}
+			// If no fractional part, emit integer token
 			tokens = append(tokens, token.Token{Type: token.TokenNumber, Literal: input[start:i]})
 			continue
 		}
@@ -211,11 +236,20 @@ func Lex(input string) []token.Token {
 				})
 				continue
 			}
+		case '?':
+			i++
+			tokens = append(tokens, token.Token{Type: token.TokenQuestion, Literal: "?"})
 		case ':':
 			tokens = append(tokens, token.Token{Type: token.TokenColon, Literal: ":"})
 			i++
 		case '.':
 			tokens = append(tokens, token.Token{Type: token.TokenDot, Literal: "."})
+			i++
+		case '[':
+			tokens = append(tokens, token.Token{Type: token.TokenLBracket, Literal: "["})
+			i++
+		case ']':
+			tokens = append(tokens, token.Token{Type: token.TokenRBracket, Literal: "]"})
 			i++
 		default:
 			panic(fmt.Sprintf("Unknown character: %c", ch))

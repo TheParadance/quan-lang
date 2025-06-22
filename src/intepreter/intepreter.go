@@ -217,6 +217,26 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 			}
 		}
 		return nil, false
+	case expression.TernaryExpr:
+		condVal, _ := Eval(e.Condition, env)
+		condBool := false
+
+		switch v := condVal.(type) {
+		case bool:
+			condBool = v
+		case int:
+			condBool = v != 0
+		case float64:
+			condBool = v != 0.0
+		default:
+			panic("Invalid condition type for ternary expression")
+		}
+
+		if condBool {
+			return Eval(e.TrueValue, env)
+		} else {
+			return Eval(e.FalseValue, env)
+		}
 	case expression.FuncDef:
 		env.Funcs[e.Name] = e
 		return 0, false
@@ -268,6 +288,47 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 			return objMap[e.Property], false
 		}
 		panic("Attempt to access property on non-object")
+	case expression.ArrayExpr:
+		var result []interface{}
+		for _, elem := range e.Elements {
+			val, _ := Eval(elem, env)
+			result = append(result, val)
+		}
+		return result, false
+	case expression.IndexExpr:
+		arrayVal, _ := Eval(e.Array, env)
+		indexVal, _ := Eval(e.Index, env)
+
+		arr, ok := arrayVal.([]interface{})
+		if !ok {
+			panic("Trying to index non-array value")
+		}
+
+		var indexInt int
+		switch v := indexVal.(type) {
+		case int:
+			indexInt = v
+		case float64:
+			if v == float64(int(v)) {
+				indexInt = int(v)
+			} else {
+				panic("Array index must be an integer")
+			}
+		default:
+			panic("Array index must be an integer")
+		}
+
+		if indexInt < 0 || indexInt >= len(arr) {
+			panic("Array index out of bounds")
+		}
+
+		return arr[indexInt], false
+
+		if indexInt < 0 || indexInt >= len(arr) {
+			panic("Array index out of bounds")
+		}
+
+		return arr[indexInt], false
 	default:
 		panic("Unknown expression type")
 	}

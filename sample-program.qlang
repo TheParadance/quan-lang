@@ -2,7 +2,8 @@ x = 5
 y = 2
 
 fn add(a, b){
-    return a + b
+    c = a + b
+    return c + 5
 }
 
 fn sub(a, b){
@@ -21,5 +22,12 @@ println(person.name)
 println(person.age)
 println(person)
 
+val = true ? 1 : 2
+println(val)
+println(type(val))
 
-boole
+r = [1, 2, 3]
+println(r)
+println(r[0] + r[2])
+
+vvv = 0.5 + 1
