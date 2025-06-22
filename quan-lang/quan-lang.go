@@ -1,6 +1,7 @@
 package lang
 
 import (
+	debuglevel "theparadance.com/quan-lang/src/debug/debug-level"
 	environment "theparadance.com/quan-lang/src/env"
 	errorexception "theparadance.com/quan-lang/src/error-exception"
 	"theparadance.com/quan-lang/src/expression"
@@ -8,6 +9,8 @@ import (
 	lexer "theparadance.com/quan-lang/src/lexer"
 	parser "theparadance.com/quan-lang/src/paraser"
 	systemconsole "theparadance.com/quan-lang/src/system-console"
+	"theparadance.com/quan-lang/src/token"
+	"theparadance.com/quan-lang/utils"
 )
 
 var (
@@ -18,20 +21,24 @@ var (
 type Mode string
 
 type ExecuationOption struct {
-	Mode    string
-	Console systemconsole.SystemConsole
+	Mode       string
+	Console    systemconsole.SystemConsole
+	DebugLevel []debuglevel.DebugLevel
 }
 
-func NewExecuationOption(console systemconsole.SystemConsole, mode string) *ExecuationOption {
+func NewExecuationOption(console systemconsole.SystemConsole, mode string, debugLevel *[]debuglevel.DebugLevel) *ExecuationOption {
 	return &ExecuationOption{
-		Mode:    mode,
-		Console: console,
+		Mode:       mode,
+		Console:    console,
+		DebugLevel: *debugLevel,
 	}
 }
 
 type ExecuationResult struct {
 	Env             *environment.Env
 	ConsoleMessages string
+	Tokens          *[]token.Token
+	Expression      *[]expression.Expr
 }
 
 func Execuate(program string, env *environment.Env, option *ExecuationOption) (ExecuationResult, error) {
@@ -65,7 +72,7 @@ func Execuate(program string, env *environment.Env, option *ExecuationOption) (E
 		println("Status: Lexing program")
 	}
 	tokens := lexer.Lex(program)
-	if option.Mode == DEBUG_MODE {
+	if option.Mode == DEBUG_MODE && utils.ArrayItemContain(option.DebugLevel, debuglevel.LEXER_TOKENS) {
 		println("========== Lexed Tokens ==========")
 		option.Console.Println("Tokens:")
 		for _, token := range tokens {
@@ -79,7 +86,7 @@ func Execuate(program string, env *environment.Env, option *ExecuationOption) (E
 	}
 	p := parser.Parser{Tokens: tokens}
 	ast := p.Parse()
-	if option.Mode == DEBUG_MODE {
+	if option.Mode == DEBUG_MODE && utils.ArrayItemContain(option.DebugLevel, debuglevel.LEXER_TOKENS) {
 		println("========== AST Tree ==========")
 		for _, expr := range ast {
 			PrintExpression(expr, 0)
@@ -102,6 +109,8 @@ func Execuate(program string, env *environment.Env, option *ExecuationOption) (E
 	result := ExecuationResult{
 		Env:             e,
 		ConsoleMessages: option.Console.String(),
+		Tokens:          &tokens,
+		Expression:      &ast,
 	}
 	return result, nil
 }
