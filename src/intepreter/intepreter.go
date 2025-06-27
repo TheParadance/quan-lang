@@ -260,6 +260,11 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 			return Eval(e.FalseValue, env)
 		}
 	case expression.FuncDef:
+		// If anonymous, return it as value
+		if e.Name == "" {
+			return e, false
+		}
+
 		env.Funcs[e.Name] = e
 		return 0, false
 	case expression.FuncCall:
@@ -298,6 +303,32 @@ func Eval(expr expression.Expr, env *environment.Env) (interface{}, bool) {
 			}
 			return result, false
 		}
+
+		// 3. Try function from a variable
+		if val, ok := env.GetVar(e.Name); ok {
+			if fnExpr, ok := val.(expression.FuncDef); ok {
+				if len(e.Args) != len(fnExpr.Params) {
+					panic(fmt.Sprintf("Function expects %d args, got %d", len(fnExpr.Params), len(e.Args)))
+				}
+
+				localEnv := environment.NewEnv(env)
+				for i, param := range fnExpr.Params {
+					argVal, _ := Eval(e.Args[i], env)
+					localEnv.SetVar(param, argVal)
+				}
+
+				for _, stmt := range fnExpr.Body {
+					val, ret := Eval(stmt, localEnv)
+					if ret {
+						return val, true
+					}
+				}
+				return 0, false
+			} else {
+				panic("Variable is not a function")
+			}
+		}
+		panic("Function not found: " + e.Name)
 	case expression.ReturnExpr:
 		if e.Value == nil {
 			return nil, true

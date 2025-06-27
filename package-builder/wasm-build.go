@@ -70,13 +70,24 @@ func executeForWasm(this js.Value, args []js.Value) (exeResult any) {
 		"payload": map[string]interface{}{
 			"program": program,
 			"inputs":  vars,
-			"outputs": result.Env.Vars,
+			"outputs": filterPrimative(result.Env),
 			"console": result.ConsoleMessages,
 			"tokens":  string(tokensResult),
 			"ast":     string(expressionResult),
 		},
 	})
 	return
+}
+
+func filterPrimative(env *env.Env) map[string]interface{} {
+	result := make(map[string]interface{})
+	for name, item := range env.Vars {
+		switch item.(type) {
+		case int, float64, string, bool:
+			result[name] = item
+		}
+	}
+	return result
 }
 
 func jsObjectToMap(obj js.Value) map[string]interface{} {
