@@ -132,6 +132,25 @@ func (p *Parser) parseFunction() expression.Expr {
 	return expression.FuncDef{Name: name, Params: params, Body: body}
 }
 
+func (p *Parser) parseAnonFunction() expression.Expr {
+	p.consume(token.TokenLParen)
+	var params []string
+	if !p.match(token.TokenRParen) {
+		params = append(params, p.consume(token.TokenIdent).Literal)
+		for p.match(token.TokenComma) {
+			params = append(params, p.consume(token.TokenIdent).Literal)
+		}
+		p.consume(token.TokenRParen)
+	}
+	p.consume(token.TokenLBrace)
+	body := p.parseBlock()
+	p.consume(token.TokenRBrace)
+	return expression.FuncDef{
+		Params: params,
+		Body:   body,
+	}
+}
+
 func (p *Parser) parseBlock() []expression.Expr {
 	var stmts []expression.Expr
 	for p.peek().Type != token.TokenRBrace && p.peek().Type != token.TokenEOF {
@@ -264,6 +283,9 @@ func (p *Parser) parsePrimary() expression.Expr {
 		p.advance()
 		right := p.parsePrimary()
 		expr = expression.BinaryExpr{Left: expression.NumberExpr{Value: 0}, Operator: token.Token{Type: token.TokenMinus}, Right: right}
+	case token.TokenFn:
+		p.advance()
+		return p.parseAnonFunction()
 	case token.TokenLBracket:
 		return p.parseArrayLiteral()
 		// default:
@@ -290,12 +312,26 @@ func (p *Parser) parsePrimary() expression.Expr {
 				Array: expr,
 				Index: index,
 			}
+
+		case token.TokenLParen:
+			// support calling function expressions: (fn(x){...})(5)
+			p.advance()
+			var args []expression.Expr
+			if p.peek().Type != token.TokenRParen {
+				args = append(args, p.parseExpr())
+				for p.match(token.TokenComma) {
+					args = append(args, p.parseExpr())
+				}
+			}
+			p.consume(token.TokenRParen)
+			expr = expression.CallExpr{
+				Callee: expr,
+				Args:   args,
+			}
 		default:
 			return expr
 		}
 	}
-
-	return expr
 }
 
 func (p *Parser) parseTemplateString(parts []token.Token) expression.Expr {

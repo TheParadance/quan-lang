@@ -56,6 +56,11 @@ type FuncCall struct {
 	Args []Expr
 }
 
+type CallExpr struct {
+	Callee Expr // Can be VarExpr, FuncExpr, etc.
+	Args   []Expr
+}
+
 type ReturnExpr struct {
 	Value Expr
 }

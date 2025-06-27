@@ -40,7 +40,7 @@ function App() {
   return (
     <div className='flex flex-col w-full h-full md:overflow-hidden overflow-y-auto'>
       <div className='py-3 px-3 flex justify-between items-center shadow'>
-        <div className='font-bold text-[1.1rem]'>QuanLang</div>
+        <div className='font-bold text-[1.1rem]'>QuanLang <span className='text-gray-800 font-light text-[0.8rem]'>{`v1.4`}</span></div>
         <button onClick={exe} className='px-3 py-1 rounded-md cursor-pointer bg-black text-white active:scale-[0.95] transition-all duration-150'>Execute</button>
       </div>
       <div className='w-full md:h-full h-max flex flex-col md:flex-row md:overflow-hidden overflow-y-auto'>

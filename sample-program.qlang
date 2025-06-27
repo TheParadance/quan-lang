@@ -1,3 +1,5 @@
-json = "{\"hello\": 5}"
-parsed = toJson(json, true, 4)
-println(parsed)
+x = fn (b){
+  println(b);
+}
+
+x(2)
